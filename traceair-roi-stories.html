@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TraceAir ROI Stories</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F8F9FA; color: #1A1A1A; padding: 24px 20px 40px; min-height: 100vh; }
+
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 { font-size: 20px; font-weight: 600; color: #111; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #666; }
+
+  .filter-section { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .filter-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .filter-label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #888; min-width: 56px; }
+  .filter-btn { font-size: 12px; padding: 5px 13px; border-radius: 99px; border: 1px solid #DDD; background: #FFF; color: #555; cursor: pointer; transition: all 0.15s; line-height: 1.4; }
+  .filter-btn:hover { border-color: #999; color: #111; }
+  .filter-btn.active { background: #111; color: #FFF; border-color: #111; }
+
+  .results-bar { font-size: 12px; color: #888; margin-bottom: 16px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+
+  .card { background: #FFF; border: 1px solid #E8E8E8; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; transition: box-shadow 0.15s, border-color 0.15s; }
+  .card:hover { border-color: #C8C8C8; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card.hidden { display: none; }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 99px; }
+  .badge-teal { background: #E0F5EE; color: #0A6B50; }
+  .badge-blue { background: #E4F0FB; color: #1558A0; }
+  .badge-amber { background: #FAF0DC; color: #7A4B08; }
+  .badge-purple { background: #EEEDFE; color: #3A3288; }
+  .badge-persona { background: #F0F0F0; color: #555; }
+
+  .card-title { font-size: 15px; font-weight: 600; color: #111; line-height: 1.35; }
+
+  .meta-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .meta-tag { font-size: 11px; color: #666; background: #F4F4F4; padding: 2px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; }
+  .meta-tag i { font-size: 11px; }
+
+  .talking-point { border-left: 3px solid; border-radius: 0 8px 8px 0; padding: 11px 13px; }
+  .tp-teal  { border-color: #1D9E75; background: #EEF9F5; }
+  .tp-blue  { border-color: #3580CC; background: #EDF4FC; }
+  .tp-amber { border-color: #C07A10; background: #FDF5E6; }
+  .tp-purple{ border-color: #7A72D8; background: #F1F0FE; }
+  .tp-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #999; margin-bottom: 5px; }
+  .tp-text  { font-size: 13px; line-height: 1.65; color: #222; }
+
+  .copy-btn { margin-top: 9px; font-size: 12px; padding: 4px 10px; border: 1px solid #DDD; border-radius: 6px; background: #FFF; color: #555; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s; }
+  .copy-btn:hover { border-color: #999; color: #111; }
+  .copy-btn i { font-size: 13px; }
+  .copy-btn.copied { border-color: #1D9E75; color: #1D9E75; background: #EEF9F5; }
+
+  .expand-btn { font-size: 12px; color: #888; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0; transition: color 0.15s; }
+  .expand-btn:hover { color: #333; }
+  .expand-btn .ti { font-size: 14px; transition: transform 0.2s; }
+  .expand-btn.open .ti { transform: rotate(180deg); }
+
+  .detail { display: none; border-top: 1px solid #EEE; padding-top: 13px; flex-direction: column; gap: 11px; }
+  .detail.open { display: flex; }
+  .detail-section h4 { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #AAA; margin-bottom: 5px; }
+  .detail-section p { font-size: 13px; color: #555; line-height: 1.65; }
+  .tools-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+  .tool-chip { font-size: 11px; color: #555; background: #F4F4F4; border: 1px solid #E4E4E4; padding: 2px 8px; border-radius: 4px; }
+
+  .empty-state { display: none; padding: 48px 24px; text-align: center; }
+  .empty-state p { font-size: 14px; color: #888; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>TraceAir ROI Stories</h1>
+  <p>Real customer use cases for sales conversations. Filter to find the right story, then copy the talking point.</p>
+</div>
+
+<div class="filter-section">
+  <div class="filter-row">
+    <span class="filter-label">Feature</span>
+    <button class="filter-btn active" data-type="feature" data-value="all">All</button>
+    <button class="filter-btn" data-type="feature" data-value="multi-tool">Multi-tool earthwork</button>
+    <button class="filter-btn" data-type="feature" data-value="cut-fill">Cut / fill to design</button>
+    <button class="filter-btn" data-type="feature" data-value="stockpile">Stockpile placement</button>
+    <button class="filter-btn" data-type="feature" data-value="elevation">Point elevation + cross section</button>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Persona</span>
+    <button class="filter-btn active" data-type="persona" data-value="all">All</button>
+    <button class="filter-btn" data-type="persona" data-value="pm">Land dev PM</button>
+    <button class="filter-btn" data-type="persona" data-value="engineer">Civil engineer</button>
+  </div>
+</div>
+
+<div class="results-bar" id="results-bar">Showing 5 stories</div>
+
+<div class="grid" id="grid">
+
+  <!-- Card 1 -->
+  <div class="card" data-feature="multi-tool" data-persona="pm">
+    <div class="card-top">
+      <div class="badges">
+        <span class="badge badge-teal">Multi-tool earthwork</span>
+        <span class="badge badge-persona">Land dev PM</span>
+      </div>
+    </div>
+    <div class="card-title">Waste area planning around environmental constraints</div>
+    <div class="meta-row">
+      <span class="meta-tag"><i class="ti ti-map-pin"></i> Skybrooke</span>
+      <span class="meta-tag"><i class="ti ti-calendar"></i> Apr 2026</span>
+    </div>
+    <div class="talking-point tp-teal">
+      <div class="tp-label">Talking point</div>
+      <div class="tp-text" id="tp-0">"A land developer worked out where excess cut could go — around wetlands, stream buffers, and skimmer basins — using area, distance, stockpile volume, and cut/fill to design, all in one exhibit on the environmental-compliance overlay. That's a disposal plan that respects the constraints, built without a field visit."</div>
+      <button class="copy-btn" id="cb-0" onclick="copyTP(0)"><i class="ti ti-copy"></i> Copy talking point</button>
+    </div>
+    <button class="expand-btn" onclick="toggleDetail(this)"><i class="ti ti-chevron-down"></i> Full story</button>
+    <div class="detail">
+      <div class="detail-section">
+        <h4>Value delivered</h4>
+        <p>Replaces a site meeting or field visit to evaluate disposal-area placement against the grading design and environmental constraints. The exhibit becomes the record — multiple quantified candidate zones on the compliance overlay, shareable with the contractor and engineer in one link.</p>
+      </div>
+      <div class="detail-section">
+        <h4>What they did</h4>
+        <p>Built a multi-tool exhibit — 3 distance measurements, 4 area polygons, stockpiles, cut to design, and fill to design — on the "Overall Grading & EC Plan" overlay. Maps candidate disposal areas around stream buffers, wetlands, skimmer basins, and limits of disturbance.</p>
+      </div>
+      <div class="detail-section">
+        <h4>Tools used</h4>
+        <div class="tools-list">
+          <span class="tool-chip">Distance ×3</span>
+          <span class="tool-chip">Area ×4</span>
+          <span class="tool-chip">Stockpiles</span>
+          <span class="tool-chip">Cut to design</span>
+          <span class="tool-chip">Fill to design</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="card" data-feature="multi-tool" data-persona="pm">
+    <div class="card-top">
+      <div class="badges">
+        <span class="badge badge-teal">Multi-tool earthwork</span>
+        <span class="badge badge-persona">Land dev PM</span>
+      </div>
+    </div>
+    <div class="card-title">Quantifying a fill shortfall behind homes</div>
+    <div class="meta-row">
+      <span class="meta-tag"><i class="ti ti-map-pin"></i> Korge 20-acre</span>
+      <span class="meta-tag"><i class="ti ti-calendar"></i> Feb 2026</span>
+    </div>
+    <div class="talking-point tp-teal">
+      <div class="tp-label">Talking point</div>
+      <div class="tp-text" id="tp-1">"A PM quantified a fill shortfall against the design — about 8,200 cubic yards of net import needed — and backed it with elevation checks and a cross section, all in one public exhibit. The contractor opened the link and had the number and the locations without a site visit or a call."</div>
+      <button class="copy-btn" id="cb-1" onclick="copyTP(1)"><i class="ti ti-copy"></i> Copy talking point</button>
+    </div>
+    <button class="expand-btn" onclick="toggleDetail(this)"><i class="ti ti-chevron-down"></i> Full story</button>
+    <div class="detail">
+      <div class="detail-section">
+        <h4>Value delivered</h4>
+        <p>Replaces a field visit, a separate sketch, and a follow-up call. The contractor opens the link and sees the quantified shortfall (−8,172 yd³ against design), the low areas, and the cross-section profile — enough to scope the import and the work.</p>
+      </div>
+      <div class="detail-section">
+        <h4>What they did</h4>
+        <p>Combined point elevation checks, a cross section, and a site-wide cut/fill balance (Cut 4,891 yd³ / Fill 13,063 yd³ / Balance −8,172 yd³) to document the deficiency. Named it "FILL NEEDED BEHIND HOMES" and made it PUBLIC so the field team could see it immediately.</p>
+      </div>
+      <div class="detail-section">
+        <h4>Tools used</h4>
+        <div class="tools-list">
+          <span class="tool-chip">Point elevation</span>
+          <span class="tool-chip">Cross section</span>
+          <span class="tool-chip">Cut/fill balance</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="card" data-feature="cut-fill" data-persona="engineer">
+    <div class="card-top">
+      <div class="badges">
+        <span class="badge badge-blue">Cut / fill to design</span>
+        <span class="badge badge-persona">Civil engineer</span>
+      </div>
+    </div>
+    <div class="card-title">Grading alternatives analysis across ~50 lots</div>
+    <div class="meta-row">
+      <span class="meta-tag"><i class="ti ti-map-pin"></i> Leon Ridge</span>
+      <span class="meta-tag"><i class="ti ti-calendar"></i> Mar 2026</span>
+    </div>
+    <div class="talking-point tp-blue">
+      <div class="tp-label">Talking point</div>
+      <div class="tp-text" id="tp-2">"A civil engineer evaluated three layouts for adding a block of lots — each quantified by pad-removal group and street, one option totaling nearly 67,000 cubic yards. Three named options, three exhibits, all from the same drone scan. That's an alternatives analysis without a separate survey or a Civil 3D session per option."</div>
+      <button class="copy-btn" id="cb-2" onclick="copyTP(2)"><i class="ti ti-copy"></i> Copy talking point</button>
+    </div>
+    <button class="expand-btn" onclick="toggleDetail(this)"><i class="ti ti-chevron-down"></i> Full story</button>
+    <div class="detail">
+      <div class="detail-section">
+        <h4>Value delivered</h4>
+        <p>A formal grading alternatives analysis directly from drone data — no separate survey, no rebuilding a Civil 3D model per option. The three exhibits are the deliverable: comparable, already quantified (~66,862 yd³ for Option 3), shareable internally.</p>
+      </div>
+      <div class="detail-section">
+        <h4>What they did</h4>
+        <p>Saved three named option exhibits across a block of ~50 lots. Option 3 breaks the work into pad-removal groups (lots 26–33, 34–49, 50–62) and street earthwork — with cut to design, fill to design, and an estimated volumes table totaling 66,862 yd³.</p>
+      </div>
+      <div class="detail-section">
+        <h4>Tools used</h4>
+        <div class="tools-list">
+          <span class="tool-chip">Area</span>
+          <span class="tool-chip">Cut to design</span>
+          <span class="tool-chip">Fill to design</span>
+          <span class="tool-chip">Estimated volumes table</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 4 -->
+  <div class="card" data-feature="stockpile" data-persona="pm">
+    <div class="card-top">
+      <div class="badges">
+        <span class="badge badge-amber">Stockpile placement</span>
+        <span class="badge badge-persona">Land dev PM</span>
+      </div>
+    </div>
+    <div class="card-title">Defining exact stockpile zones with measured setbacks</div>
+    <div class="meta-row">
+      <span class="meta-tag"><i class="ti ti-map-pin"></i> Trillium</span>
+      <span class="meta-tag"><i class="ti ti-calendar"></i> May 2026</span>
+    </div>
+    <div class="talking-point tp-amber">
+      <div class="tp-label">Talking point</div>
+      <div class="tp-text" id="tp-3">"A land developer drew the exact stockpile zone — 75 feet off the access road, 30 feet off the trees, capped at 5 feet — and shared it with the crew. The contractor places it right the first time instead of building it in the wrong spot and moving it."</div>
+      <button class="copy-btn" id="cb-3" onclick="copyTP(3)"><i class="ti ti-copy"></i> Copy talking point</button>
+    </div>
+    <button class="expand-btn" onclick="toggleDetail(this)"><i class="ti ti-chevron-down"></i> Full story</button>
+    <div class="detail">
+      <div class="detail-section">
+        <h4>Value delivered</h4>
+        <p>A stockpile placed too close to the road or trees — or built too high — has to be relocated. That's double-handling the material, a direct cost. Defining the zone with measured setbacks and a height cap up front prevents the misplacement and re-handling.</p>
+      </div>
+      <div class="detail-section">
+        <h4>What they did</h4>
+        <p>Defined the permitted placement zone using distance and area, then annotated constraints directly on the map: 75' road setback, 30' tree setback, 5' height cap, and specific materials instructions for the field crew. Made PUBLIC for immediate crew access.</p>
+      </div>
+      <div class="detail-section">
+        <h4>Tools used</h4>
+        <div class="tools-list">
+          <span class="tool-chip">Distance ×2</span>
+          <span class="tool-chip">Area ×2</span>
+          <span class="tool-chip">Annotations</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 5 -->
+  <div class="card" data-feature="elevation" data-persona="pm">
+    <div class="card-top">
+      <div class="badges">
+        <span class="badge badge-purple">Point elevation + cross section</span>
+        <span class="badge badge-persona">Land dev PM</span>
+      </div>
+    </div>
+    <div class="card-title">Recurring lot grade verification across a whole community</div>
+    <div class="meta-row">
+      <span class="meta-tag"><i class="ti ti-map-pin"></i> The Woodlands Hills</span>
+      <span class="meta-tag"><i class="ti ti-calendar"></i> May 2026</span>
+    </div>
+    <div class="talking-point tp-purple">
+      <div class="tp-label">Talking point</div>
+      <div class="tp-text" id="tp-4">"A land developer is checking lot grade and slope on individual lots against the engineered design — six elevation points and a cross section, right on the CAD overlay. And it's not a one-off: it's a numbered series they run across the whole community for grade and erosion monitoring."</div>
+      <button class="copy-btn" id="cb-4" onclick="copyTP(4)"><i class="ti ti-copy"></i> Copy talking point</button>
+    </div>
+    <button class="expand-btn" onclick="toggleDetail(this)"><i class="ti ti-chevron-down"></i> Full story</button>
+    <div class="detail">
+      <div class="detail-section">
+        <h4>Value delivered</h4>
+        <p>Reading lot grade from the drone scan plus the design overlay replaces sending a crew to shoot grades on individual lots. Maintaining a numbered exhibit series builds the ongoing record — for both grade verification and erosion-control monitoring across the full development.</p>
+      </div>
+      <div class="detail-section">
+        <h4>What they did</h4>
+        <p>Placed 6 elevation points and a cross section on lots 47–48 over the engineering CAD overlay. Part of a recurring "TWH-##" numbered series maintained across the community — companion exhibits also track erosion and SWPPP monitoring alongside grade checks.</p>
+      </div>
+      <div class="detail-section">
+        <h4>Tools used</h4>
+        <div class="tools-list">
+          <span class="tool-chip">Point elevation ×6</span>
+          <span class="tool-chip">Cross section</span>
+          <span class="tool-chip">Annotations ×15</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="empty-state" id="empty-state">
+  <p>No stories match these filters.</p>
+</div>
+
+<script>
+  let activeFeature = 'all';
+  let activePersona = 'all';
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.type;
+      document.querySelectorAll(`.filter-btn[data-type="${type}"]`).forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (type === 'feature') activeFeature = btn.dataset.value;
+      if (type === 'persona') activePersona = btn.dataset.value;
+      applyFilters();
+    });
+  });
+
+  function applyFilters() {
+    let count = 0;
+    document.querySelectorAll('.card').forEach(card => {
+      const fMatch = activeFeature === 'all' || card.dataset.feature === activeFeature;
+      const pMatch = activePersona === 'all' || card.dataset.persona === activePersona;
+      const show = fMatch && pMatch;
+      card.classList.toggle('hidden', !show);
+      if (show) count++;
+    });
+    document.getElementById('results-bar').textContent =
+      count === 1 ? 'Showing 1 story' : `Showing ${count} stories`;
+    document.getElementById('empty-state').style.display = count === 0 ? 'block' : 'none';
+  }
+
+  function toggleDetail(btn) {
+    btn.classList.toggle('open');
+    btn.nextElementSibling.classList.toggle('open');
+  }
+
+  function copyTP(index) {
+    const text = document.getElementById('tp-' + index).textContent.trim();
+    const btn = document.getElementById('cb-' + index);
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '<i class="ti ti-copy"></i> Copy talking point';
+      }, 2200);
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.classList.add('copied');
+      btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '<i class="ti ti-copy"></i> Copy talking point';
+      }, 2200);
+    });
+  }
+</script>
+</body>
+</html>
